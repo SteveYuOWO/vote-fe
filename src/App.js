@@ -38,16 +38,16 @@ function App({ contract, currentUser, nearConfig, wallet }) {
     setTimeout(async () => {
       const candidates = await contract.get_candidates()
       const candidatesArray = []
-      for(let i = 0; i < candidates.length; i++) {
+      for (let i = 0; i < candidates.length; i++) {
         const candidate = candidates[i];
-        const score = await contract.get_score({candidate})
-        candidatesArray.push({name: candidate, score})
+        const score = await contract.get_score({ candidate })
+        candidatesArray.push({ name: candidate, score })
       }
       setCandidates(candidatesArray)
       const round = await contract.get_round();
       setRound(round);
       const lastWinner = await contract.last_winner();
-      console.log(lastWinner);
+      // console.log(lastWinner);
       setLastWinner(lastWinner);
       setLoading(false);
     }, 500)
@@ -75,75 +75,96 @@ function App({ contract, currentUser, nearConfig, wallet }) {
           <img src={NEAR} width="100px" height="100px" alt="NEAR" />
         </div>
         <h1>Ranking of Near Kings<strong>( Round: {round} )</strong></h1>
-        <h3 style={{marginTop: '20px'}}>Last round winner: <strong>{lastWinner[0]}</strong> Score: <strong>{lastWinner[1]}</strong></h3>
+        <h3 style={{ marginTop: '20px' }}>Last round winner: <strong>{lastWinner[0]}</strong> Score: <strong>{lastWinner[1]}</strong></h3>
         <div className="nav">
           <h3>Login as {accountId}</h3>
           <button onClick={() => signOut({ wallet })}>Logout</button>
           <button onClick={async () => {
             setLoading(true);
-            const [candidates, score] = await contract.next_round();
-            setLoading(false);
-            toast.success(`${candidates} success, score ${score}! `)
+            try {
+              const [candidates, score] = await contract.next_round();
+              await fetchCandidates();
+              
+              setTimeout(() => {
+                toast.success(`${candidates} success, score ${score}! `)
+              }, 500)
+            }catch (err) {
+              toast.failed(`Network not stable. Try again`)
+
+            }
           }}>Next Round</button>
         </div>
         <div
           className="swiperr">
           {candidates.length !== 0 && <Swiper
-            style={{ width: "450px", paddingBottom: "40px", paddingTop: "40px"}}
+            style={{ width: "450px", paddingBottom: "40px", paddingTop: "40px" }}
             pagination
             spaceBetween={20}
             slidesPerView={3}
-            onSlideChange={(e) => console.log(e)}
-            // onSwiper={(swiper) => console.log(swiper)}
+            // onSlideChange={(e) => console.log(e)}
+          // onSwiper={(swiper) => console.log(swiper)}
           >
             {candidates.map((candidate, index) => (
-              <SwiperSlide>
-                <div className={select === index ? "selected": "noselect"} onClick={() => setSelect(index)}>
+              <SwiperSlide key={index}>
+                <div className={select === index ? "selected" : "noselect"} onClick={() => setSelect(index)}>
                   <img src={images[index % images.length]} width="auto" height="200px" alt="" />
-                  <div style={{textAlign: 'center', fontWeight: 'bold'}}>
-                    {candidate.name} 
+                  <div style={{ textAlign: 'center', fontWeight: 'bold' }}>
+                    {candidate.name}
                   </div>
-                  <div style={{textAlign: 'center'}}>
+                  <div style={{ textAlign: 'center' }}>
                     vote score: {candidate.score}
                   </div>
                 </div>
               </SwiperSlide>
             ))}
           </Swiper>}
-          {candidates.length === 0 && <div style={{marginBottom: '10px'}}>No Candidates, Please add one.</div>}
+          {candidates.length === 0 && <div style={{ marginBottom: '10px' }}>No Candidates, Please add one.</div>}
         </div>
-        <div style={{display:'flex', justifyContent:'center', alignItems:'center'}}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <p>Click image to select and vote</p>
-          <button 
-            style={{margin: 0, marginLeft: 20}}
+          <button
+            style={{ margin: 0, marginLeft: 20 }}
             onClick={() => {
               setLoading(true);
-              contract.vote({candidate: candidates[select].name}).then((res) => {
-                if(res) {
+              // console.log(candidates[select].name)
+              contract.vote({ candidate: candidates[select].name }).then((res) => {
+                // console.log(res)
+                setLoading(false);
+                if (res) {
                   fetchCandidates().then(() => {
-                    toast.success("Vote success!");
+                    setTimeout(() => {
+                      toast.success("Vote success!");
+                    }, 1000)
                   })
                 } else {
-                  toast.error("Vote failed! You have voted before");
+                  setTimeout(() => {
+                    toast.error("Vote failed! You have voted before");
+                  }, 300)
                 }
               }).catch(() => {
                 setLoading(false);
-                toast.error("Vote failed! You have voted before");
+                setTimeout(() => {
+                  toast.error("Vote failed! You have voted before");
+                }, 1000)
               })
             }}>Vote</button>
         </div>
         <div className="potential-input">
-          <input type="text" placeholder="Please input the potential candidates" onChange={(e) => { 
+          <input type="text" placeholder="Please input the potential candidates" onChange={(e) => {
             setInputCandidates(e.target.value)
-          }}/>
-          <button style={{marginLeft: '10px'}} onClick={async () => {
+          }} />
+          <button style={{ marginLeft: '10px' }} onClick={async () => {
             setLoading(true);
-            contract.add_candidate({candidate: inputCandidates}).then(async () => {
+            contract.add_candidate({ candidate: inputCandidates }).then(async () => {
               await fetchCandidates();
-              toast.success('Add potential candidates success');
+              setTimeout(() => {
+                toast.success('Add potential candidates success');
+              }, 1000);
             }).catch(() => {
               setLoading(false)
-              toast.error('Add potential candidates error');
+              setTimeout(() => {
+                toast.error('Add potential candidates error');
+              }, 1000);
             })
           }}>Submit</button>
         </div>

@@ -21,7 +21,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "scp": "scp -r ./build/* root@www.steveyuowo.com:/usr/local/nginx/html/vote"
+    "scp": "scp -r ./build/* root@www.steveyuowo.com:/usr/local/nginx/html/vote",
+    "deploy": "yarn build && yarn scp"
   },
   "eslintConfig": {
     "extends": [
