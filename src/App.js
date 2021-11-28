@@ -89,7 +89,7 @@ function App({ contract, currentUser, nearConfig, wallet }) {
                 toast.success(`${candidates} success, score ${score}! `)
               }, 500)
             }catch (err) {
-              toast.failed(`Network not stable. Try again`)
+              toast.error(`Network not stable. Try again`)
 
             }
           }}>Next Round</button>
